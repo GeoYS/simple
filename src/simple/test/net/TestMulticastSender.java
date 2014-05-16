@@ -34,10 +34,11 @@ public class TestMulticastSender {
     public static void main(String[] args) throws UnknownHostException, SocketException, IOException, InterruptedException{
         TestMulticastSender server = new TestMulticastSender();
         
+        int i = 0;
         while(true){
             Thread.sleep(50);
             System.out.println("Message sent");
-            server.socket.multicast(new TestMessage("Hello world", Math.round(Math.random() * 100)));
+            server.socket.sendMulticast(new TestMessage("Hello world", i ++));
         }
     }
 }

@@ -31,14 +31,11 @@ public class TestMulticastReciever {
                 false);
     }
     
-    public static void main(String[] args) throws UnknownHostException, SocketException, IOException{
-        System.out.println(
-                ByteBuffer.wrap(ByteBuffer.allocate(4).putInt(12345).array(), 0, 4).getInt());
-        
+    public static void main(String[] args) throws UnknownHostException, SocketException, IOException{        
         TestMulticastReciever client = new TestMulticastReciever();
         
         while(true){
-            ObjectPacket op = client.socket.receive();
+            ObjectPacket op = client.socket.receiveMulticast();
             if(op != null)
                 System.out.println(op.object);
         }

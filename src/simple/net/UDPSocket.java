@@ -34,13 +34,22 @@ public class UDPSocket {
     public static int TIMEOUT = 100; // milliseconds to block recieve() call
     public static int TTL = 100; // Time To Live of multicasted packets in milliseconds
     
-    private DatagramSocket socket;
+    private DatagramSocket socket = null;
     private MulticastSocket groupSocket = null;
     
     private byte[] buffer = new byte[128 * 1024]; // 128 kB
-    private boolean receiveMulticast, sendMulticast;
-    private String multicastAddress;
-    private int multicastPort;
+    private boolean receiveMulticast = false, sendMulticast = false;
+    private String multicastAddress = null;
+    private int multicastPort = -1;
+    
+    /**
+     * Create an empty UDP socket. 
+     * Set your properties (eg. InetAddress, port, 
+     * multicast address, etc.).
+     */
+    public UDPSocket(){
+        
+    }
     
     /**
      * Create socket that receives or send data from/to a multicast group,
@@ -78,7 +87,7 @@ public class UDPSocket {
     }
     
     /**
-     * Create a client that receives 
+     * Create a UDPSocket that receives 
      * data individually from another UDPSocket.
      * 
      * @param localName
@@ -97,26 +106,48 @@ public class UDPSocket {
     
     /**
      * Returns an ObjectPacket, containing the object
-     * read from the DatagramSocket or MulticastSocket, 
+     * read from its DatagramSocket, 
      * and the InetAddress and port from which it came,
      * or null if there is nothing to be received.
      * 
      * @return ObjectPacket
      */
     public ObjectPacket receive() throws IOException{
-        DatagramSocket tSocket;
-        
-        if(receiveMulticast){
-            tSocket = groupSocket;
+        // DatagramPacket could be abstracted out.
+        DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+        try{
+            socket.receive(packet);
         }
-        else{
-            tSocket = socket;
+        catch(IOException e){
+            System.out.println("Debugging: Nothing to receive.");
+            return null;
+        }
+        
+        ByteArrayInputStream bis = new ByteArrayInputStream(packet.getData());
+        ObjectInputStream ois = new ObjectInputStream(bis);
+        
+        Object o = null;
+        try{
+            o = ois.readObject();
+        }
+        catch(Exception e){
+            o = null;
+        }
+
+        return o != null ? 
+                new ObjectPacket(packet.getPort(), packet.getAddress(), o)
+                : null;
+    }
+    
+    public ObjectPacket receiveMulticast() throws IOException{
+        if(this.groupSocket == null){
+            return null;
         }
         
         // DatagramPacket could be abstracted out.
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
         try{
-            tSocket.receive(packet);
+            groupSocket.receive(packet);
         }
         catch(IOException e){
             System.out.println("Debugging: Nothing to receive.");
@@ -168,7 +199,7 @@ public class UDPSocket {
      * @param o - Object to send
      * @throws IOException 
      */
-    public void multicast(Object o) throws IOException{
+    public void sendMulticast(Object o) throws IOException{
         if(!sendMulticast){
             System.out.println("Sorry, this does not have multicast priviledges");
             return;
@@ -186,4 +217,25 @@ public class UDPSocket {
         
         socket.send(packet);
     }   
+    
+    public InetAddress getAddress(){
+        return this.socket.getInetAddress();
+    }
+    
+    public int getPort(){
+        return this.socket.getPort();
+    }
+    
+    public void setSocket(int port, String localName) throws UnknownHostException, SocketException{
+        socket = new DatagramSocket(port, InetAddress.getByName(localName));
+    }
+    
+    public void setMulticastSocket(int groupPort, String groupName) throws IOException{
+        this.multicastAddress = groupName;
+        this.multicastPort = groupPort;
+        groupSocket = new MulticastSocket(groupPort);
+        groupSocket.joinGroup(InetAddress.getByName(groupName));
+        groupSocket.setSoTimeout(TIMEOUT);
+        groupSocket.setTimeToLive(TTL);
+    }
 }
