@@ -19,16 +19,14 @@ import simple.net.UDPSocket;
 public class TestMulticastReciever {
     
     static final int PORT = 4455, GROUPPORT = 9555;
-    static final String GROUPNAME = "235.1.1.1";
+    static final String GROUPNAME = "235.1.3.1";
     
     UDPSocket socket;
     public TestMulticastReciever() throws UnknownHostException, SocketException, IOException{
         socket = new UDPSocket(InetAddress.getLocalHost().getHostName(),
                 PORT,
                 GROUPNAME,
-                GROUPPORT,
-                true,
-                false);
+                GROUPPORT);
     }
     
     public static void main(String[] args) throws UnknownHostException, SocketException, IOException{        

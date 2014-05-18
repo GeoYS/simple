@@ -38,7 +38,6 @@ public class UDPSocket {
     private MulticastSocket groupSocket = null;
     
     private byte[] buffer = new byte[128 * 1024]; // 128 kB
-    private boolean receiveMulticast = false, sendMulticast = false;
     private String multicastAddress = null;
     private int multicastPort = -1;
     
@@ -59,8 +58,6 @@ public class UDPSocket {
      * @param localPort port for this socket to bind to
      * @param groupName the IP for the specific multicast group to join
      * @param groupPort the port that members of the multicast group will use
-     * @param receiveMulticast whether or not it receives from its regular DatagramSocket, or is MulticastSocket
-     * @param sendMulticast explicitly whether or not this should be multicasting
      * @throws SocketException
      * @throws UnknownHostException
      * @throws IOException 
@@ -69,21 +66,15 @@ public class UDPSocket {
                 String localName,
                 int localPort,
                 String groupName,
-                int groupPort,
-                boolean receiveMulticast,
-                boolean sendMulticast
+                int groupPort
             ) throws SocketException, UnknownHostException, IOException{
         socket = new DatagramSocket(localPort, InetAddress.getByName(localName));
         multicastAddress = groupName;
         multicastPort = groupPort;
-        if(receiveMulticast){
-            groupSocket = new MulticastSocket(groupPort);
-            groupSocket.joinGroup(InetAddress.getByName(groupName));
-            groupSocket.setSoTimeout(TIMEOUT);
-            groupSocket.setTimeToLive(TTL);
-        }
-        this.receiveMulticast = receiveMulticast;
-        this.sendMulticast = sendMulticast;
+        groupSocket = new MulticastSocket(groupPort);
+        groupSocket.joinGroup(InetAddress.getByName(groupName));
+        groupSocket.setSoTimeout(TIMEOUT);
+        groupSocket.setTimeToLive(TTL);
     }
     
     /**
@@ -200,11 +191,6 @@ public class UDPSocket {
      * @throws IOException 
      */
     public void sendMulticast(Object o) throws IOException{
-        if(!sendMulticast){
-            System.out.println("Sorry, this does not have multicast priviledges");
-            return;
-        }
-        
         // Streams could be abstracted out.
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(bos);

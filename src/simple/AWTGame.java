@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.Timer;
 
 /**
  * A simple template to quickly start making a 2D game,
@@ -125,7 +124,7 @@ public abstract class AWTGame extends JFrame{
      * Called through a java.awt.Timer.
      */
     private void render(){
-        
+        System.out.println("Rendered");
         Graphics graphics = _canvas.getBufferStrategy().getDrawGraphics();
         graphics.setColor( Color.BLACK );
         graphics.fillRect( 0, 0, _canvas.getWidth(), _canvas.getHeight());

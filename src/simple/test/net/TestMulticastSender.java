@@ -26,9 +26,7 @@ public class TestMulticastSender {
         socket = new UDPSocket(InetAddress.getLocalHost().getHostName(),
                 PORT,
                 GROUPNAME,
-                GROUPPORT,
-                false,
-                true);
+                GROUPPORT);
     }
     
     public static void main(String[] args) throws UnknownHostException, SocketException, IOException, InterruptedException{
